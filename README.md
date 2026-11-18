@@ -15,7 +15,9 @@ clock, so every move is deterministic and a replay plays the same game.
 plain Python 3.13, standard library only, and it reads no other file.
 Local practice trials from the kit (6 games each, against depth-2,
 depth-3, depth-4 and the 100k, 250k and 500k node house engines) rated
-it Elo 1451, 1191 and 1279 on instances 0, 1 and 2.
+it Elo 1451, 1191 and 1279 on instances 0, 1 and 2. Measured locally,
+each trial took about 420 to 520 seconds of wall time, the house
+engines' thinking included, well inside the 1,800-second budget.
 
 ## Run it
 
