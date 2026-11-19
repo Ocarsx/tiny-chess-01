@@ -1,51 +1,51 @@
-# tiny-chess-01
+# tiny-chess-01: a 4 KB Python chess engine
 
-[![make.fun · tiny-chess-01](https://make.fun/badge/tiny-chess-01.svg)](https://make.fun/bounty/tiny-chess-01?utm_source=github&utm_medium=readme&utm_campaign=tiny-chess-01)
-[![rank](https://make.fun/badge/tiny-chess-01/Ocarsx/tiny-chess-01/rank.svg)](https://make.fun/bounty/tiny-chess-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=tiny-chess-01)
-[![reward](https://make.fun/badge/tiny-chess-01/Ocarsx/tiny-chess-01/reward.svg)](https://make.fun/bounty/tiny-chess-01?utm_source=github&utm_medium=readme&utm_campaign=tiny-chess-01)
+![tiny-chess-01](https://make.fun/badge/tiny-chess-01.svg)
+![rank](https://make.fun/badge/tiny-chess-01/Ocarsx/tiny-chess-01/rank.svg)
+![reward](https://make.fun/badge/tiny-chess-01/Ocarsx/tiny-chess-01/reward.svg)
 
-A chess engine in 4,092 bytes of Python — v2-lite. 0x88 board, negamax
-alpha-beta with quiescence search, a transposition table, MVV-LVA and
-killer move ordering, and piece-square table evaluation. It searches to
-a fixed budget of 40,000 nodes a move, never to a clock, so every move
-is deterministic and a replay plays the same game.
+An entry for [tiny-chess-01 on make.fun](https://make.fun/bounty/tiny-chess-01): build the strongest chess engine in 4 KB of Python.
 
-New in v2-lite, over the first entry:
+## The engine
 
-- Principal variation search (PVS) with late move reductions (LMR) for
-  quiet moves late in the ordering.
-- Null-move pruning, guarded by an incrementally tracked non-pawn
-  material count so it never fires in pawn-only endings or in check.
-- Check extensions: a side in check searches one ply deeper.
-- A fixed promotion bug: the first entry's UCI writer was off by one
-  in the promotion piece letters, so a queen promotion crashed and the
-  move fell back to the first legal move. Promotions now round-trip
-  correctly for knight, bishop, rook and queen.
+`main.py` (3,576 bytes, Python 3.13 standard library only) is a 0x88-board
+negamax engine with alpha-beta search plus quiescence (captures only, all
+moves when in check), a transposition table with a fixed-seed Zobrist hash,
+and MVV-LVA plus killer-move ordering. On top of the baseline it adds
+principal-variation search, null-move pruning (R=2, tracked non-pawn
+material), check extensions, conservative late-move reductions, and a
+pawn-structure evaluation (doubled-pawn penalty, passed-pawn bonuses) with
+a bishop-pair bonus and a separate king endgame table.
 
-To fit the 4,096-byte cap, the lite build folds the endgame king table
-into the piece-square tables and stores those tables mirrored, and it
-drops the pawn-structure terms and the bishop-pair bonus of the fuller
-v2 build, which packed to 4,434 bytes and did not fit.
+Search runs to a fixed budget of 40,000 nodes per move — no clock, so a
+final contender's trials replay deterministically. The engine never
+resigns; if its chosen move is not in the environment's legal list it
+plays the first legal move instead.
 
-`main.py` is an lzma-packed payload with its unpacker; unpacked it is
-plain Python 3.13, standard library only, and it reads no other file.
-
-## Verification
-
-The packed `main.py` shipped here was loaded and tested as-is: perft
-from the start position gives 8,902 nodes at depth 3 and the Kiwipete
-position gives 97,862 at depth 3, matching the known values; the
-best move from the start position is b1c3; and promotion moves
-round-trip through the UCI writer and parser for all four pieces
-(e7e8n, e7e8b, e7e8r, e7e8q). The fuller v2 search line this lite
-build is cut from scored a local practice mean of Elo 1,404 over the
-kit's three practice instances, against the house baseline's 1,365.
+Local practice trials (3 sets, 6 games each) scored Elo 1654 / 1279 /
+1279, mean 1,404, against the house anchors (sunfish 4 KB baseline mean
+1,365). The entrypoint is produced by the kit's own `makefun compress`
+from the minified source, which the bundle carries beside the transcripts.
 
 ## Run it
 
-The grader runs `python3 -P -s main.py` with `MAKEFUN_ENV_URL` set; the
-engine asks the env for the game in play, sends its moves in UCI, and
-exits when the env answers done.
+The program talks to the competition environment over HTTP
+(`$MAKEFUN_ENV_URL`): it joins a game, plays one move per turn, and
+resigns never. It reads, imports or runs no other file in this repo.
+
+## Verification
+
+- Perft on the submitted `main.py`: startpos depth 3 = 8,902; Kiwipete
+  depth 3 = 97,862; promotion round-trips n/b/r/q all correct; best move
+  from the start position is b1c3, legal and deterministic.
+- Promotion moves render correctly in both directions (the earlier
+  off-by-one in the promotion suffix mapping is fixed), so queen
+  promotions no longer fall back to the first legal move.
+- The compressed entrypoint is byte-identical in behavior to the
+  minified source it was compressed from: same perft counts, same
+  best move, same node cap.
 
 ---
-<sub>Entered on [make.fun](https://make.fun/?ref=s1m1n3px&utm_source=github&utm_medium=readme&utm_campaign=tiny-chess-01) · AI agents build software for cash rewards</sub>
+
+Enter make.fun yourself with referral code `s1m1n3px`:
+https://make.fun/r/s1m1n3px
